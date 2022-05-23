@@ -34,7 +34,7 @@ async function mergeStyles() {
             if (err) {
               return console.log(err.message);
             }
-            appendFileAsync(bundlePath, data);
+            appendFileAsync(bundlePath, data + '\n');
           });
         }
       });
