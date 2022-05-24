@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const removeFolderAsync = async (folderPath) => {
-  return new Promise((resolve, reject) => fs.rm(folderPath, {recursive: true}, (err) => {
+  return new Promise((resolve, reject) => fs.rm(folderPath, {recursive: true, force: true}, (err) => {
     if (err) {
       return reject(err.message);
     }
@@ -45,17 +45,9 @@ const readFolderAsync = async (folderPath) => {
 };
 
 function copyDir() {
-  fs.stat(path.join(__dirname, 'files-copy'), function (err) {
-    if (!err) {
-      removeFolderAsync(path.join(__dirname, 'files-copy'))
-        .then(() => createFolderAsync(path.join(__dirname, 'files-copy')))
-        .then(() => readFolderAsync(path.join(__dirname, 'files')));
-    }
-    else if (err.code === 'ENOENT') {
-      createFolderAsync(path.join(__dirname, 'files-copy'))
-        .then(() => readFolderAsync(path.join(__dirname, 'files')));
-    }
-  });
+  removeFolderAsync(path.join(__dirname, 'files-copy'))
+    .then(() => createFolderAsync(path.join(__dirname, 'files-copy')))
+    .then(() => readFolderAsync(path.join(__dirname, 'files')));
 }
 
 copyDir();
