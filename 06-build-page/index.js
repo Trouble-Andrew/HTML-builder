@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const removeFolderAsync = async (folderPath) => {
-  return new Promise((resolve, reject) => fs.rm(folderPath, {recursive: true}, (err) => {
+  return new Promise((resolve, reject) => fs.rm(folderPath, {recursive: true, force: true}, (err) => {
     if (err) {
       return reject(err.message);
     }
@@ -120,86 +120,43 @@ function buildPage() {
   const ASSETS_DEST = path.join(PROJECT_DIST, 'assets');
   let COMPONENTS = [];
 
-  fs.stat(PROJECT_DIST, function (err) {
-    if (!err) {
-      removeFolderAsync(PROJECT_DIST)
-        .then(() => createFolderAsync(PROJECT_DIST))
-        .then(() => createFolderAsync(path.join(PROJECT_DIST, 'assets')))
-        .then(() => fs.copyFile(HTML_TEMPLATE, path.join(PROJECT_DIST, 'template.html'), (err) => {
-          if (err) {
-            throw err;
-          }
-        }))
-        .then(() => {
-          copyFolderAsync(ASSETS_FOLDER, ASSETS_DEST);
-        })
-        .then(() => getComponentsListAsync(COMPONENTS_FOLDER))
-        .then((components) => {
-          console.log(components);
-          for (const component of components) {
-            COMPONENTS.push(component);
-          }
-        })
-        .then(() => readFileAsync(path.join(PROJECT_DIST, 'template.html')))
-        .then((data) => {
-          return data;
-        })
-        .then((data) => {
-          for (const component of COMPONENTS) {
-            const stream = fs.createReadStream(path.join(COMPONENTS_FOLDER, component.name), 'utf-8');
+  removeFolderAsync(PROJECT_DIST)
+    .then(() => createFolderAsync(PROJECT_DIST))
+    .then(() => createFolderAsync(path.join(PROJECT_DIST, 'assets')))
+    .then(() => fs.copyFile(HTML_TEMPLATE, path.join(PROJECT_DIST, 'template.html'), (err) => {
+      if (err) {
+        throw err;
+      }
+    }))
+    .then(() => {
+      copyFolderAsync(ASSETS_FOLDER, ASSETS_DEST);
+    })
+    .then(() => getComponentsListAsync(COMPONENTS_FOLDER))
+    .then((components) => {
+      console.log(components);
+      for (const component of components) {
+        COMPONENTS.push(component);
+      }
+    })
+    .then(() => readFileAsync(path.join(PROJECT_DIST, 'template.html')))
+    .then((data) => {
+      return data;
+    })
+    .then((data) => {
+      for (const component of COMPONENTS) {
+        const stream = fs.createReadStream(path.join(COMPONENTS_FOLDER, component.name), 'utf-8');
 
-            let componentData = '';
+        let componentData = '';
 
-            stream.on('data', chunk => componentData += chunk);
-            stream.on('end', () => {
-              data = data.replace(`{{${component.name.replace(/(\.\w+$)/igm, '')}}}`, componentData);
-              writeFileAsync(path.join(PROJECT_DIST, 'template.html'), data);
-            });
+        stream.on('data', chunk => componentData += chunk);
+        stream.on('end', () => {
+          data = data.replace(`{{${component.name.replace(/(\.\w+$)/igm, '')}}}`, componentData);
+          writeFileAsync(path.join(PROJECT_DIST, 'template.html'), data);
+        });
 
-          }
-        })
-        .then(() => mergeStyles());
-    }
-    else if (err.code === 'ENOENT') {
-      createFolderAsync(PROJECT_DIST)
-        .then(() => {
-          createFolderAsync(path.join(PROJECT_DIST, 'assets'));
-        }).then(() => fs.copyFile(HTML_TEMPLATE, path.join(PROJECT_DIST, 'template.html'), (err) => {
-          if (err) {
-            throw err;
-          }
-        }))
-        .then(() => {
-          copyFolderAsync(ASSETS_FOLDER, ASSETS_DEST);
-        })
-        .then(() => getComponentsListAsync(COMPONENTS_FOLDER))
-        .then((components) => {
-          console.log(components);
-          for (const component of components) {
-            COMPONENTS.push(component);
-          }
-        })
-        .then(() => readFileAsync(path.join(PROJECT_DIST, 'template.html')))
-        .then((data) => {
-          return data;
-        })
-        .then((data) => {
-          for (const component of COMPONENTS) {
-            const stream = fs.createReadStream(path.join(COMPONENTS_FOLDER, component.name), 'utf-8');
-
-            let componentData = '';
-
-            stream.on('data', chunk => componentData += chunk);
-            stream.on('end', () => {
-              data = data.replace(`{{${component.name.replace(/(\.\w+$)/igm, '')}}}`, componentData);
-              writeFileAsync(path.join(PROJECT_DIST, 'template.html'), data);
-            });
-
-          }
-        })
-        .then(() => mergeStyles());
-    }
-  });
+      }
+    })
+    .then(() => mergeStyles());
 }
 
 buildPage();
