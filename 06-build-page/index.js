@@ -123,7 +123,7 @@ function buildPage() {
   removeFolderAsync(PROJECT_DIST)
     .then(() => createFolderAsync(PROJECT_DIST))
     .then(() => createFolderAsync(path.join(PROJECT_DIST, 'assets')))
-    .then(() => fs.copyFile(HTML_TEMPLATE, path.join(PROJECT_DIST, 'template.html'), (err) => {
+    .then(() => fs.copyFile(HTML_TEMPLATE, path.join(PROJECT_DIST, 'index.html'), (err) => {
       if (err) {
         throw err;
       }
@@ -138,7 +138,7 @@ function buildPage() {
         COMPONENTS.push(component);
       }
     })
-    .then(() => readFileAsync(path.join(PROJECT_DIST, 'template.html')))
+    .then(() => readFileAsync(path.join(PROJECT_DIST, 'index.html')))
     .then((data) => {
       return data;
     })
@@ -151,7 +151,7 @@ function buildPage() {
         stream.on('data', chunk => componentData += chunk);
         stream.on('end', () => {
           data = data.replace(`{{${component.name.replace(/(\.\w+$)/igm, '')}}}`, componentData);
-          writeFileAsync(path.join(PROJECT_DIST, 'template.html'), data);
+          writeFileAsync(path.join(PROJECT_DIST, 'index.html'), data);
         });
 
       }
